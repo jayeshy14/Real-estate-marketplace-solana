@@ -12,7 +12,7 @@ import { findProgramAddressSync } from '@project-serum/anchor/dist/cjs/utils/pub
 import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID} from '@solana/spl-token'
 import { SystemProgram } from '@solana/web3.js'
 import { getAssociatedTokenAddress } from '@solana/spl-token'
-
+/* global BigInt */
 function Create({  }) {
   // const [loading, setLoading] = useState(true)
   const [nftimage, setNFTImage] = useState();
