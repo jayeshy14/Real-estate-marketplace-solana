@@ -23,7 +23,7 @@ function Create({  }) {
     price: 0
   });
 
-  const [uri, setUri] = useState("");
+  const [uri, setUri] = useState();
   const [counterInitialized, setCounterInitialized] = useState(false);
   const [currentProvider, setCurrentProvider] = useState("");
   const [counterAccount , setCounterAccount] = useState("");
@@ -207,9 +207,6 @@ function Create({  }) {
         console.log(resFile.data);
 
         const ImgHash = `https://gateway.pinata.cloud/ipfs/${resFile.data.IpfsHash}`;
-        const uri = resFile.data.IpfsHash
-        setUri(uri)
-        console.log("uri is set to: ", uri)
         const info ={
             name: forminfo.title,
             description: forminfo.description,
@@ -230,6 +227,8 @@ function Create({  }) {
             try {
                 const res = await axios.post(url, info, { headers });
                 const meta = `https://gateway.pinata.cloud/ipfs/${res.data.IpfsHash}`
+                const uri = res.data.IpfsHash;
+                setUri(uri);
                 console.log("uri is: ", uri);
                 mintThenList(uri);
             } catch (error) {
@@ -282,6 +281,9 @@ function Create({  }) {
       const price  = new BN(forminfo.price)
       const apartments = new BN(forminfo.apartments)
       console.log("final uri:", uri)
+      if(uri.length === 0){
+        alert("please try again! uri is undefined")
+      }
       const tx = await program.methods
       .listBuilding(apartments, price, uri)
       .accounts({
@@ -318,7 +320,7 @@ function Create({  }) {
 
             <div className='max-w-lg mx-auto'>
               <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="user_avatar">Upload Image</label>
-              <input onChange={changeHandler} name="file" class="block w-full mb-4 h-8 text-m  text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" type="file" />
+              <input onChange={changeHandler} name="file" class="block w-full mb-4 h-8 text-m  text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" type="file" accept="image/*" />
             </div>
 
 

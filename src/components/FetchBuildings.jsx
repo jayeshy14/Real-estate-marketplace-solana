@@ -1,86 +1,90 @@
 
 import { PublicKey } from '@solana/web3.js';
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import {programId, connection, provider, program } from 'src/utils/AnchorProvider';
 import { getProvider } from 'src/utils/DetectProvider';
-import { deserializeUnchecked } from 'borsh';
-// import { sha256 } from '@coral-xyz/anchor/dist/cjs/utils';
+import Cards from './Cards';
 
 const FetchBuildings = () => {
+    const [buildings, setBuildings] = useState([]);
+    const [items, setItems] = useState([])
+
+    // Helper function to get all buildings
+    const getAllBuildings = async () => {
+        // Fetch all Building accounts
+        const buildingAccounts = await program.account.building.all();
+        return buildingAccounts.map(building => ({
+        buildingId: building.account.buildingId.toString(),
+        lister: building.account.lister.toString(),
+        apartmentsCount: building.account.apartmentsCount.toNumber(),
+        remainingApartments: building.account.remainingApartments.toNumber(),
+        apartmentPrice: building.account.apartmentPrice.toNumber(),
+        ipfsHash: building.account.ipfsHash,
+        soldOut: building.account.soldOut
+        }));
+    };
+
+    const loadItems = async() => {
+        let displayItems = [];
+        const items = await getAllBuildings();
+        console.log(items);
+        const itemCount = items.length;
+        console.log(itemCount)
+        for (let i = 0; i < itemCount; i++) {
+            const item = items[i]
+            console.log("item: ", item);
+            const remainingApartments = Number(item.remainingApartments)
+            const apartmentCount = Number(item.apartmentCount)
+            if (!item.soldOut) {
+              // console.log();
+              const uri = `https://gateway.pinata.cloud/ipfs/${item.ipfsHash}`;
+                console.log(uri);
+              const response = await fetch(uri)
+              console.log(response)
+              const metadata = await response.json()
+              console.log(metadata)
+              metadata.apartmentsOwned = apartmentCount-remainingApartments;
+              metadata.apartmentsAvailable = remainingApartments;
+              metadata.buildingId = item.buildingId
+              console.log("metadata: ", metadata);
+              displayItems.push(metadata)
+            }
+          }
+          setItems(displayItems)
+          console.log(items)
+    }
+  
     useEffect(() => {
-        const fetch = async() => {
-            // fetchBuildings()
-        }
-        fetch()
-    }, [])
+      const fetchBuildings = async () => {
+        // Fetch and display all buildings
+        // const allBuildings = await getAllBuildings();
+        await loadItems();
+        // console.log(allBuildings)
+        // setBuildings(allBuildings);
+      };
+  
+      fetchBuildings();
+    }, [connection]);
+
+    const buyMarketItem = async() => {
+        console.log("pay to buy")
+    }
+
+
   return (
-    <div>
-      
+    <div className='flex flex-wrap gradient-bg-welcome   gap-10 justify-center pt-24 pb-5 px-16'>
+      {
+        (items.length > 0 ?
+          items.map((item, idx) => (
+            <Cards item={item} buyMarketItem={buyMarketItem} />
+          ))
+          : (
+            <main style={{ padding: "1rem 0" }}>
+              <h2 className='text-white'>No listed assets</h2>
+            </main>
+          ))}
     </div>
   )
 }
 
 export default FetchBuildings
-
-
-
-
-
-class Building {
-    constructor(properties) {
-        Object.assign(this, properties);
-    }
-}
-// Define the schema for deserialization
-const BuildingSchema = new Map([
-    [
-        Building, 
-        {
-            kind: 'struct',
-            fields: [
-                ['building_id', [32]], // Pubkey is 32 bytes
-                ['lister', [32]], // Pubkey is 32 bytes
-                ['apartments_count', 'u64'],
-                ['remaining_apartments', 'u64'],
-                ['apartment_price', 'u64'],
-                ['apartment_owners', [[32]]], // Vector of Pubkeys
-                ['ipfs_hash', 'string'],
-                ['sold_out', 'u8'], // Boolean represented as a byte
-            ],
-        },
-    ],
-]);
-
-
-
-//    export const  fetchBuildings = async() => {
-//     const buildingDiscriminator = getAccountDiscriminator('Building');
-
-//     const accounts = await connection.getProgramAccounts(new PublicKey(programId), {
-//         filters: [
-//             {
-//                 memcmp: {
-//                     offset: 0, // The discriminator is at the very beginning of the account data
-//                     bytes: buildingDiscriminator.toString('base64'),
-//                 },
-//             },
-//         ],
-//     });
-//     console.log(accounts)
-
-//     return accounts.map(({ pubkey, account }) => {
-//         // Deserialization may be needed depending on your structure
-//         return {
-//             pubkey, // Public key of the building account
-//             accountData: account.data, // Raw account data (needs deserialization)
-//         };
-//     });
-// }
-
-// // Helper function to get the account discriminator
-// function getAccountDiscriminator(accountName) {
-//     const hash = sha256.digest(`account:${accountName}`);
-//     const buffer = Buffer.from(hash)
-//     return buffer.subarray(0, 8)
-// }
-

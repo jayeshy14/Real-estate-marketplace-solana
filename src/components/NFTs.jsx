@@ -61,17 +61,6 @@ function NFTs({ marketplace, setNFTitem, setMarketplace }) {
         metadata.apartmentsAvailable = metadata.apartments - apartmentsOwned;
         metadata.buildingId = i
         console.log("metadata: ", metadata);
-        // const totalPrice = await marketplace.getTotalPrice(item.itemId)
-        // items.push({
-        //   // price: metadata.price,
-        //   // itemId: item.itemId,
-        //   // owner: metadata.owner,
-        //   // seller: item.seller,
-        //   // name: metadata.name,
-        //   // description: metadata.description,
-        //   // image: metadata.image,
-        //   // viewitem: false,
-        // })
         displayItems.push(metadata)
       }
     }
